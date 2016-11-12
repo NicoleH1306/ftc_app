@@ -77,5 +77,9 @@ public class FtcOpModeRegister implements OpModeRegister {
         /**
          * Any manual OpMode class registrations should go here.
          */
+
+        //manager.register("ButtonBucket", HardwardPushbot.class);
+
+
     }
 }
