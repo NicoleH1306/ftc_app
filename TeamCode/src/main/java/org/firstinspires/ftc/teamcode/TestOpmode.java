@@ -52,7 +52,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @TeleOp(name="Test Program", group="Nicole")  // @Autonomous(...) is the other common choice
-//@Disabled // This will keep the program from showing up on the driver station if not commented out
+@Disabled // This will keep the program from showing up on the driver station if not commented out
 public class TestOpmode extends LinearOpMode {
 
     /* Declare OpMode members. */

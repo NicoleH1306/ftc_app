@@ -53,7 +53,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @TeleOp(name="Basic drive", group="Nicole")  // @Autonomous(...) is the other common choice
-//@Disabled
+@Disabled
 public class Driving extends LinearOpMode {
 
     /* Declare OpMode members. */

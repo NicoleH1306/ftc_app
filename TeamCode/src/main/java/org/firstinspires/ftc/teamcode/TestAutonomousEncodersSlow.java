@@ -35,7 +35,6 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -66,17 +65,15 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="BlueBeacon2P2", group="Nicole")
+@Autonomous(name="Encoder Test Ramp up", group="Nicole")
 @Disabled
-public class BlueBeacon2P2 extends LinearOpMode {
+public class TestAutonomousEncodersSlow extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     DcMotor leftFrontMotor = null;
     DcMotor rightFrontMotor = null;
     DcMotor leftBackMotor = null;
     DcMotor rightBackMotor = null;
-
-    ColorSensor colorSensor;
 
 
 
@@ -95,9 +92,6 @@ public class BlueBeacon2P2 extends LinearOpMode {
         rightFrontMotor = hardwareMap.dcMotor.get("right front motor");
         leftBackMotor = hardwareMap.dcMotor.get("left back motor");
         rightBackMotor = hardwareMap.dcMotor.get("right back motor");
-
-        colorSensor = hardwareMap.colorSensor.get("beacon color");
-        colorSensor.enableLed(false);
 
         // eg: Set the drive motor directions:
         // "Reverse" the motor that runs backwards when connected directly to the battery
@@ -136,97 +130,25 @@ public class BlueBeacon2P2 extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
+        // Step through each leg of the path,
+        // Note: Reverse movement is obtained by setting a negative distance (not speed)
+        /*encoderDrive(1,  27,  27, 27, 27, 5.0);  // S1: Forward 48 Inches with 5 Sec timeout
+        sleep(100);
+        encoderDrive(1, 10, -10, 10, -10, 3.0);
+        sleep(100);
+        encoderDrive(1, 44, 44, 44, 44, 3.0);
+        sleep(100);
+        encoderDrive(1, -24, -24, -24, -24, 3.0);
+        sleep(100);*/
 
-        //Getting to the first beacon
-        encoderDrive(0.4,  27,  27, 27, 27, 5.0); //Drive forward 27 inches
-        sleep(200);
-        encoderDrive(0.4, 14, -14, 14, -14, 3.0); //Turn to face the beacon
-        sleep(200);
-        encoderDrive(0.4, 47, 47, 47, 47, 3.0); //Drive forward 47 inches to the beacon
-        sleep(200);
-        encoderDrive(0.4, -14, 14, -14, 14, 3.0); //Turn robot to be pararell with beacon
-        sleep(200);
-        encoderDrive(0.4, 5, 5, 5, 5, 3.0); //Move forward to be allign color sensor with first color
-        sleep(200);
-        encoderDrive(0.4, 5, -5, -5, 5, 0.3); //Move sideways toward beacon to read color
-        sleep(200);
-
-        //First Beacon
-        if(colorSensor.blue() > 2){
-            encoderDrive(0.3, -3, -3, -3, -3, 3.0);
-            sleep(200);
-            encoderDrive(0.3, 3.5, -3.5, -3.5, 3.5, 3.0);
-            sleep(200);
-            encoderDrive(0.3, -4, 4, 4, -4, 3.0);
-            sleep(200);
-            encoderDrive(0.4, 54, 54, 54, 54, 3.0);
-            sleep(200);
-        }
-        else if(colorSensor.red() > 2)
-        {
-            encoderDrive(0.3, 5, 5, 5, 5, 3.0);
-            sleep(200);
-            if(colorSensor.blue() > 2)
-            {
-                encoderDrive(0.3, 3, 3, 3, 3, 3.0);
-                sleep(200);
-                encoderDrive(0.3, 3, -3, -3, 3, 3.0);
-                sleep(200);
-                encoderDrive(0.3, -5, 5, 5, -5, 0.3);
-            }
-            encoderDrive(0.4, 42.5, 42.5, 42.5, 42.5, 3.0);
-            sleep(200);
-
-        }
-        else
-        {
-            encoderDrive(0, 0, 0, 0, 0, 0);
-        }
+        encoderDrive(1, 200, 200, 200, 200, 3.0);
 
 
-        //Second Beacon
-        if(colorSensor.blue() > 2){
-            encoderDrive(0.3, -3, -3, -3, -3, 3.0);
-            sleep(200);
-            encoderDrive(0.3, 4, -4, -4, 4, 3.0);
-            sleep(200);
-
-        }
-        else if(colorSensor.red() > 2)
-        {
-            encoderDrive(0.3, 5, 5, 5, 5, 3.0);
-            sleep(200);
-            if(colorSensor.blue() > 2)
-            {
-                encoderDrive(0.3, 4, 4, 4, 4, 3.0);
-                sleep(200);
-                encoderDrive(0.3, 3, -3, -3, 3, 3.0);
-                sleep(200);
-            }
-
-        }
-        else
-        {
-            encoderDrive(0, 0, 0, 0, 0, 0);
-        }
+        // encoderDrive(0, 0, 0, 0, 0, 5.0);
 
 
+        sleep(1000);     // pause for servos to move
 
-
-
-        /*if(colorSensor.blue() > 2){
-            encoderDrive(0.3, 44, 44, 44, 44, 3.0);
-            sleep(100);
-        }
-        else if(colorSensor.red() > 2)
-        {
-            encoderDrive(0, 0, 0, 0, 0, 0);
-            telemetry.addData("Error", "Unable to find blue light");
-        }*/
-
-
-
-        sleep(3000);
         telemetry.addData("Path", "Complete");
         telemetry.update();
     }
@@ -252,6 +174,8 @@ public class BlueBeacon2P2 extends LinearOpMode {
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
 
+            speed = Math.abs(speed);
+
             // Determine new target position, and pass to motor controller
             newLeftFrontTarget = leftFrontMotor.getCurrentPosition() + (int)(leftFrontInches * COUNTS_PER_INCH);
             newRightFrontTarget = rightFrontMotor.getCurrentPosition() + (int)(rightFrontInches * COUNTS_PER_INCH);
@@ -269,12 +193,14 @@ public class BlueBeacon2P2 extends LinearOpMode {
             leftBackMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             rightBackMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
+            double startPos = leftFrontMotor.getCurrentPosition();
+
             // reset the timeout time and start motion.F
             runtime.reset();
-            leftFrontMotor.setPower(Math.abs(speed));
-            rightFrontMotor.setPower(Math.abs(speed));
-            leftBackMotor.setPower(Math.abs(speed));
-            rightBackMotor.setPower(Math.abs(speed));
+            leftFrontMotor.setPower(0.1);
+            rightFrontMotor.setPower(0.1);
+            leftBackMotor.setPower(0.1);
+            rightBackMotor.setPower(0.1);
 
 
 
@@ -282,6 +208,31 @@ public class BlueBeacon2P2 extends LinearOpMode {
             while (opModeIsActive()/* &&
                    (runtime.seconds() < timeoutS)*/ &&
                    (leftFrontMotor.isBusy() && rightFrontMotor.isBusy() && leftBackMotor.isBusy() && rightBackMotor.isBusy())) {
+
+                double distanceTraveled = Math.abs(leftFrontMotor.getCurrentPosition() - startPos);
+                double rampUp = (distanceTraveled /  660.0 * 0.9 + 0.1);
+                double distanceToTravel = Math.abs(newLeftFrontTarget - leftFrontMotor.getCurrentPosition());
+                double rampDown = (distanceToTravel / 660.0 * 0.9 + 0.1);
+
+
+
+                double rampSpeed = rampUp;
+
+                if(rampSpeed > speed)
+                {
+                    rampSpeed = rampUp;
+                }
+                if(rampDown < rampSpeed)
+                {
+                    rampSpeed = rampDown;
+                }
+
+
+
+                //leftFrontMotor.setPower(rampSpeed);
+                //rightFrontMotor.setPower(rampSpeed);
+                //leftBackMotor.setPower(rampSpeed);
+                //rightBackMotor.setPower(rampSpeed);
 
                 // Display it for the driver.
                 telemetry.addData("Path1",  "Running to %7d :%7d, :%7d :%7d", newLeftFrontTarget,  newRightFrontTarget, newLeftBackTarget, newRightBackTarget);
@@ -295,6 +246,9 @@ public class BlueBeacon2P2 extends LinearOpMode {
                         rightFrontMotor.getPower(),
                         leftBackMotor.getPower(),
                         rightBackMotor.getPower());
+
+                telemetry.addData("rampSpeed", "rampSpeed %7f", rampSpeed);
+                telemetry.addData("DistanceToTravel", "DistanceToTravel %7f", distanceToTravel);
                 telemetry.update();
 
                 // Allow time for other processes to run.

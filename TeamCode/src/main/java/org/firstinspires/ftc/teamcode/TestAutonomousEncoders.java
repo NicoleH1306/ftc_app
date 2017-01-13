@@ -69,7 +69,7 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
  */
 
 @Autonomous(name="Encoder Test", group="Nicole")
-//Disabled
+@Disabled
 public class TestAutonomousEncoders extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();

@@ -35,40 +35,40 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
-/**
- * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
- * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
- * of the FTC Driver Station. When an selection is made from the menu, the corresponding OpMode
- * class is instantiated on the Robot Controller and executed.
- *
- * This particular OpMode just executes a basic Tank Drive Teleop for a PushBot
- * It includes all the skeletal structure that all linear OpModes contain.
- *
- * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
+
+/*
+  This is a specific program designed for this robot.
+
+  This is the main program for the robot and controls all parts of the
+  robot. It takes in the input of two controllers. The first controller
+  controls the drivetrain, collector, and shooter. The second controller
+  controls the elevator and the hands.
  */
 
-@TeleOp(name="main", group="official")  // @Autonomous(...) is the other common choice
+@TeleOp(name="main", group="official")
 //@Disabled
 public class Main extends LinearOpMode {
 
-    /* Declare OpMode members. */
-    private ElapsedTime runtime = new ElapsedTime();
     //Drive train motors
     DcMotor leftFrontMotor = null;
     DcMotor rightFrontMotor = null;
     DcMotor leftBackMotor = null;
     DcMotor rightBackMotor = null;
 
-    //Collector
+    //Collector motor
     DcMotor collector = null;
 
+    //Shooter motor
     DcMotor shooter = null;
 
+    //The elevator and hands motor for the lift
+    DcMotor elevatorMotor = null;
+    DcMotor handsMotor = null;
+
+
+    //The servo that stops the particle from climbing the collector
     Servo stopper;
 
     @Override
@@ -76,81 +76,98 @@ public class Main extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        /* eg: Initialize the hardware variables. Note that the strings used here as parameters
-         * to 'get' must correspond to the names assigned during the robot configuration
-         * step (using the FTC Robot Controller app on the phone).
-         */
+        //------------------------------------------------------------------------------------------
+        //Initialize the hardware variables.
+
+        //Drive train motors
         leftFrontMotor  = hardwareMap.dcMotor.get("left front motor");
         rightFrontMotor = hardwareMap.dcMotor.get("right front motor");
         leftBackMotor = hardwareMap.dcMotor.get("left back motor");
         rightBackMotor = hardwareMap.dcMotor.get("right back motor");
 
+        //Collector motor
         collector = hardwareMap.dcMotor.get("collector motor");
 
+        //Shooter motor
         shooter = hardwareMap.dcMotor.get("shooter motor");
 
+        //Motor for stopping the particle
         stopper = hardwareMap.servo.get("stopper");
 
-        // eg: Set the drive motor directions:
-        // "Reverse" the motor that runs backwards when connected directly to the battery
+        //Motors for the elevator and hands
+        elevatorMotor = hardwareMap.dcMotor.get("elevator motor");
+        handsMotor = hardwareMap.dcMotor.get("hands motor");
+
+        //------------------------------------------------------------------------------------------
+        //Set the motor directions:
+
+        //Drivetrain motors
+        //Left and right motors are set in different directions because of mirror effect
         leftFrontMotor.setDirection(DcMotor.Direction.REVERSE);
         rightFrontMotor.setDirection(DcMotor.Direction.FORWARD);
         leftBackMotor.setDirection(DcMotor.Direction.REVERSE);
         rightBackMotor.setDirection(DcMotor.Direction.FORWARD);
 
+        //Collector motor
         collector.setDirection(DcMotor.Direction.FORWARD);
 
+        //Shooter motor
         shooter.setDirection((DcMotor.Direction.REVERSE));
 
+        //------------------------------------------------------------------------------------------
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
-        runtime.reset();
-        boolean collectorToggle = false;
-        int collectorSpeed = 0;
 
-        int leftBState = 0;
+        //------------------------------------------------------------------------------------------
+        //Intalizes the varibles after the program has started running
 
-        stopper.setPosition(0.1);
+        boolean collectorToggle = false;     //Starting and stopping of the collector
+        int collectorSpeed = 0;              //Stores the speed of the collector
+
+        int leftBState = 0;                  //Stores when the left bumper is pushed
+
+        stopper.setPosition(0.1);            //Set the beginning postion of the servo
 
 
-        // run until the end of the match (driver presses STOP)
+        //------------------------------------------------------------------------------------------
+        // Runs until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            //A standard for the control used in the if statements.
-            //It always gives you a postive number
-            double StanRightX = Math.abs(gamepad1.right_stick_x);
-            double StanRightY = Math.abs(gamepad1.right_stick_y);
 
+
+            //--------------------------------------------------------------------------------------
+            //Setting up the controls. Assigns the gamepad vaules to a varible
 
             //Drive Train setup
-
-            //Assigns the gamepad vaules to a varible
             double leftX = gamepad1.left_stick_x;
             double leftY = gamepad1.left_stick_y;
             double rightX = gamepad1.right_stick_x;
 
+            //Collecotr setup
             boolean leftB = gamepad1.left_bumper;
             double leftTr = gamepad1.left_trigger;
 
+            //Shooter setup
             double rightTr = gamepad1.right_trigger;
 
+            //Elevator setup
+            double elevator = gamepad2.left_stick_y;
+            double hands = gamepad2.right_stick_y;
 
 
+            //Equation for all direction use of mechanum wheels converted to a varible
             double LFM = leftY - leftX - rightX;
             double RFM = leftY + leftX + rightX;
             double LBM = leftY + leftX - rightX;
             double RBM = leftY - leftX + rightX;
 
-            //Creates a smaller curve for more control
+            //Creates a smaller curve for more control over the motors
             LFM = Math.pow(LFM, 2) * Math.signum(LFM);
             RFM = Math.pow(RFM, 2) * Math.signum(RFM);
             LBM = Math.pow(LBM, 2) * Math.signum(LBM);
             RBM = Math.pow(RBM, 2) * Math.signum(RBM);
 
-            //Collector setup
-
-            //Setting the power level for the motors
-
+            //Setting the power level for the drivetrain motors
             leftFrontMotor.setPower(LFM);
             rightFrontMotor.setPower(RFM);
             leftBackMotor.setPower(LBM);
@@ -158,27 +175,35 @@ public class Main extends LinearOpMode {
 
 
 
-            if(leftB)
+            //--------------------------------------------------------------------------------------
+            //Code for the collector
+
+            //Collecotr toggles between on and off on the release of the bumper
+            if(leftB)                                //If bumper is pressed
             {
-                leftBState = 1;
+                leftBState = 1;                      //Record that button has been pressed
 
 
             }
-            else
+            else                                   //When the bumper is not pressed
             {
-                if(leftBState == 1)
+                if(leftBState == 1)                //If the button has been pressed
                 {
+                    //Tells whether to turn on or off
+                    //If currently running turn off
                     if(collectorToggle)
                     {
                         collectorSpeed = 0;
                         collectorToggle = false;
                     }
+                    //If currently off turn it on
                     else if(!collectorToggle)
                     {
                         collectorSpeed = 1;
                         collectorToggle = true;
                     }
 
+                    //Resetting the button press
                     leftBState = 0;
                 }
 
@@ -186,6 +211,7 @@ public class Main extends LinearOpMode {
             }
 
 
+            //Reverses the direction of the collector
             if(leftTr >= 0.8)
             {
                 collectorSpeed = -Math.abs(collectorSpeed);
@@ -196,42 +222,53 @@ public class Main extends LinearOpMode {
             }
 
 
+            //Set the power of the motor
             collector.setPower(collectorSpeed);
 
+
+
+            //--------------------------------------------------------------------------------------
+            //Code for shooter
+
+            //If the right trigger button is pressed
             if(rightTr >= 0.8)
             {
+                //Stops all the robot from moving during shooting
                 leftFrontMotor.setPower(0);
                 rightFrontMotor.setPower(0);
                 leftBackMotor.setPower(0);
                 rightBackMotor.setPower(0);
 
-                shooter.setPower(1);
-                collector.setPower(0);
-
-
-
-                sleep(1000);
-
+                //Shooter is not set to full power because it shoots too high
+                shooter.setPower(0.8);
+                //Collector power is set to one to push the ball up
                 collector.setPower(1);
 
-                stopper.setPosition(0.7);
+                //Rest for 1.5 sec. to allow shooter to reach full speed
+                sleep(1500);
 
-                sleep(1000);
+                //Lift the stopper out of the way
+                stopper.setPosition(0.7);
 
 
             }
             else
             {
-                shooter.setPower(0);
+                //Turns off shooter and puts the stopper back
                 stopper.setPosition(0.1);
+                shooter.setPower(0);
+
             }
 
+            //--------------------------------------------------------------------------------------
+            //Code to make the hands open and close
 
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("rightX", leftX);
-            telemetry.addData("rightY", leftY);
-            telemetry.addData("stopper", stopper.getPosition());
-            telemetry.update();
+            handsMotor.setPower(hands);      //Directly controlled by the controller
+
+            //--------------------------------------------------------------------------------------
+            //Elevator code to lift and lower the elevator
+
+            elevatorMotor.setPower(elevator);    //Directly controlled by the controller
 
 
             idle(); // Always call idle() at the bottom of your while(opModeIsActive()) loop

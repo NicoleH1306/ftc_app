@@ -37,6 +37,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
@@ -66,9 +67,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="BlueBeacon2P2", group="Nicole")
+@Autonomous(name="RedBeacon2P2Line", group="Nicole")
 @Disabled
-public class BlueBeacon2P2 extends LinearOpMode {
+public class RedBeacon2P2Line extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     DcMotor leftFrontMotor = null;
@@ -77,6 +78,10 @@ public class BlueBeacon2P2 extends LinearOpMode {
     DcMotor rightBackMotor = null;
 
     ColorSensor colorSensor;
+
+    OpticalDistanceSensor lineSensor;
+
+
 
 
 
@@ -97,6 +102,8 @@ public class BlueBeacon2P2 extends LinearOpMode {
         rightBackMotor = hardwareMap.dcMotor.get("right back motor");
 
         colorSensor = hardwareMap.colorSensor.get("beacon color");
+        lineSensor = hardwareMap.opticalDistanceSensor.get("ods");
+
         colorSensor.enableLed(false);
 
         // eg: Set the drive motor directions:
@@ -136,17 +143,39 @@ public class BlueBeacon2P2 extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
+        double baseV = lineSensor.getRawLightDetected();
+
 
         //Getting to the first beacon
         encoderDrive(0.4,  27,  27, 27, 27, 5.0); //Drive forward 27 inches
         sleep(200);
-        encoderDrive(0.4, 14, -14, 14, -14, 3.0); //Turn to face the beacon
+        encoderDrive(0.4, 24, -24, 24, -24, 3.0); //Turn to face the beacon
         sleep(200);
-        encoderDrive(0.4, 47, 47, 47, 47, 3.0); //Drive forward 47 inches to the beacon
+        encoderDrive(0.4, -40, -40, -40, -40, 3.0); //Drive forward 47 inches to the beacon
         sleep(200);
-        encoderDrive(0.4, -14, 14, -14, 14, 3.0); //Turn robot to be pararell with beacon
+        encoderDrive(0.4, 24, -24, 24, -24, 3.0); //Turn robot to be pararell with beacon
         sleep(200);
-        encoderDrive(0.4, 5, 5, 5, 5, 3.0); //Move forward to be allign color sensor with first color
+
+        while(baseV + 1 > lineSensor.getRawLightDetected())
+        {
+            leftFrontMotor.setPower(-0.3);
+            rightFrontMotor.setPower(-0.3);
+            leftBackMotor.setPower(-0.3);
+            rightBackMotor.setPower(-0.3);
+
+            telemetry.addData("ods", "base at %7f", baseV);
+            telemetry.addData("ods", "value at %7f", lineSensor.getRawLightDetected());
+            telemetry.update();
+        }
+
+        leftFrontMotor.setPower(0);
+        rightFrontMotor.setPower(0);
+        leftBackMotor.setPower(0);
+        rightBackMotor.setPower(0);
+
+        //sleep(1000);
+
+        /*encoderDrive(0.4, 5, 5, 5, 5, 3.0); //Move forward to be allign color sensor with first color
         sleep(200);
         encoderDrive(0.4, 5, -5, -5, 5, 0.3); //Move sideways toward beacon to read color
         sleep(200);

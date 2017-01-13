@@ -33,55 +33,49 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-/**
- * This file illustrates the concept of driving a path based on encoder counts.
- * It uses the common Pushbot hardware class to define the drive on the robot.
- * The code is structured as a LinearOpMode
- *
- * The code REQUIRES that you DO have encoders on the wheels,
- *   otherwise you would use: PushbotAutoDriveByTime;
- *
- *  This code ALSO requires that the drive Motors have been configured such that a positive
- *  power command moves them forwards, and causes the encoders to count UP.
- *
- *   The desired path in this example is:
- *   - Drive forward for 48 inches
- *   - Spin right for 12 Inches
- *   - Drive Backwards for 24 inches
- *   - Stop and close the claw.
- *
- *  The code is written using a method called: encoderDrive(speed, leftInches, rightInches, timeoutS)
- *  that performs the actual movement.
- *  This methods assumes that each movement is relative to the last stopping place.
- *  There are other ways to perform encoder based moves, but this method is probably the simplest.
- *  This code uses the RUN_TO_POSITION mode to enable the Motor controllers to generate the run profile
- *
- * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
- */
+/*
+  The code is written using a method called: encoderDrive(speed, leftInches, rightInches, timeoutS)
+  that performs the actual movement.
 
-@Autonomous(name="BlueBeacon2P2", group="Nicole")
-@Disabled
-public class BlueBeacon2P2 extends LinearOpMode {
+  This methods assumes that each movement is relative to the last stopping place.
+*/
+
+@Autonomous(name="BlueBeacon2P2Line", group="Working")
+//Disabled
+public class BlueBeacon2P2Line extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
+
+    //Declaring the drivetrain motors
     DcMotor leftFrontMotor = null;
     DcMotor rightFrontMotor = null;
     DcMotor leftBackMotor = null;
     DcMotor rightBackMotor = null;
 
+    //Declares the hand motor
+    //This is used in Autonmous to move them out of the way
+    DcMotor hands = null;
+
+    //Declares the color sensor
+    //Used for detecting which button to hit
     ColorSensor colorSensor;
 
+    //Declares the optical distance sensor
+    //Used for finding the line beneath the beacon
+    OpticalDistanceSensor lineSensor;
 
 
-    static final double     COUNTS_PER_MOTOR_REV    = 1100 ;    // eg: TETRIX Motor Encoder 1440
-    static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // This is < 1.0 if geared UP
+
+
+
+    static final double     COUNTS_PER_MOTOR_REV    = 1100 ;    // 1100 encoder points per rotation
+    static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // No gear reduction because of direct drive
     static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
     static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
                                                       (WHEEL_DIAMETER_INCHES * 3.1415);
@@ -90,17 +84,31 @@ public class BlueBeacon2P2 extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
-         /* Declare OpMode members. */
+        //------------------------------------------------------------------------------------------
+        //Initialize the hardware variables.
+
+
+        //Drivetrain motors
         leftFrontMotor  = hardwareMap.dcMotor.get("left front motor");
         rightFrontMotor = hardwareMap.dcMotor.get("right front motor");
         leftBackMotor = hardwareMap.dcMotor.get("left back motor");
         rightBackMotor = hardwareMap.dcMotor.get("right back motor");
 
+        //Hands motor
+        hands = hardwareMap.dcMotor.get("hands motor");
+
+        //The sensors
         colorSensor = hardwareMap.colorSensor.get("beacon color");
+        lineSensor = hardwareMap.opticalDistanceSensor.get("ods");
+
+        //Turn the led off on the colorsensor
         colorSensor.enableLed(false);
 
-        // eg: Set the drive motor directions:
-        // "Reverse" the motor that runs backwards when connected directly to the battery
+        //------------------------------------------------------------------------------------------
+        //Set the drive motor directions:
+
+
+        //Left and right motors set in different directions of miror effect
         leftFrontMotor.setDirection(DcMotor.Direction.FORWARD);
         rightFrontMotor.setDirection(DcMotor.Direction.REVERSE);
         leftBackMotor.setDirection(DcMotor.Direction.FORWARD);
@@ -112,32 +120,45 @@ public class BlueBeacon2P2 extends LinearOpMode {
          * The init() method of the hardware class does all the work here
          */
 
+        //------------------------------------------------------------------------------------------
+        //Set the encoders
+
         // Send telemetry message to signify robot waiting;
-        telemetry.addData("Status", "Resetting Encoders");    //
+        telemetry.addData("Status", "Resetting Encoders");
         telemetry.update();
 
+        //Reset the encoders to zero
         leftFrontMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFrontMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftBackMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightBackMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         idle();
 
+        //Set the mode for encoder to run
         leftFrontMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightFrontMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftBackMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightBackMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
-        // Send telemetry message to indicate successful Encoder reset
+        // Send telemetry message of the current encoder postion
         telemetry.addData("Path0",  "Starting at %7d :%7d :%7d :%7d",
                           rightBackMotor.getCurrentPosition(), leftBackMotor.getCurrentPosition(), leftFrontMotor.getCurrentPosition(), rightFrontMotor.getCurrentPosition());
         telemetry.update();
 
+
+        //------------------------------------------------------------------------------------------
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
+        //Set the base value for the optical distance sensor
+        double baseV = lineSensor.getRawLightDetected();
 
+
+        //------------------------------------------------------------------------------------------
         //Getting to the first beacon
+
+
         encoderDrive(0.4,  27,  27, 27, 27, 5.0); //Drive forward 27 inches
         sleep(200);
         encoderDrive(0.4, 14, -14, 14, -14, 3.0); //Turn to face the beacon
@@ -146,94 +167,115 @@ public class BlueBeacon2P2 extends LinearOpMode {
         sleep(200);
         encoderDrive(0.4, -14, 14, -14, 14, 3.0); //Turn robot to be pararell with beacon
         sleep(200);
-        encoderDrive(0.4, 5, 5, 5, 5, 3.0); //Move forward to be allign color sensor with first color
-        sleep(200);
-        encoderDrive(0.4, 5, -5, -5, 5, 0.3); //Move sideways toward beacon to read color
+
+        //------------------------------------------------------------------------------------------
+        //lining up with the beacon
+
+        //Keep driving until change in the sensor value caused by the white line
+        while(baseV + 1 > lineSensor.getRawLightDetected())
+        {
+            leftFrontMotor.setPower(0.1);
+            rightFrontMotor.setPower(0.1);
+            leftBackMotor.setPower(0.1);
+            rightBackMotor.setPower(0.1);
+
+            telemetry.addData("ods", "base at %7f", baseV);
+            telemetry.addData("ods", "value at %7f", lineSensor.getRawLightDetected());
+            telemetry.update();
+        }
+
+        //When robot alligned to beacon stop
+        leftFrontMotor.setPower(0);
+        rightFrontMotor.setPower(0);
+        leftBackMotor.setPower(0);
+        rightBackMotor.setPower(0);
+
         sleep(200);
 
-        //First Beacon
+
+        //------------------------------------------------------------------------------------------
+        //Activating the first beacon
+        encoderDrive(0.4, 3, -3, -3, 3, 0.3); //Move sideways toward beacon to read color
+        sleep(200);
+
+        //Reading color first beacon
+        //If color is blue
         if(colorSensor.blue() > 2){
-            encoderDrive(0.3, -3, -3, -3, -3, 3.0);
+            encoderDrive(0.3, -3, -3, -3, -3, 3.0);            //Drive backwards 3 inches to align with button
             sleep(200);
-            encoderDrive(0.3, 3.5, -3.5, -3.5, 3.5, 3.0);
+            encoderDrive(0.3, 1.5, -1.5, -1.5, 1.5, 3.0);      //Push the button
             sleep(200);
-            encoderDrive(0.3, -4, 4, 4, -4, 3.0);
+            encoderDrive(0.3, -4, 4, 4, -4, 3.0);              //Back away from the beacon
             sleep(200);
-            encoderDrive(0.4, 54, 54, 54, 54, 3.0);
+            encoderDrive(0.4, 54, 54, 54, 54, 3.0);            //Drive to the next beacon
             sleep(200);
         }
+        //If color is red
         else if(colorSensor.red() > 2)
         {
-            encoderDrive(0.3, 5, 5, 5, 5, 3.0);
+            encoderDrive(0.3, 5, 5, 5, 5, 3.0);                //Drive forward to align sensor to beacon
             sleep(200);
-            if(colorSensor.blue() > 2)
+            if(colorSensor.blue() > 2)                         //Check to see if color is blue
             {
-                encoderDrive(0.3, 3, 3, 3, 3, 3.0);
+                encoderDrive(0.3, 3, 3, 3, 3, 3.0);            //Drive forward to align with button
                 sleep(200);
-                encoderDrive(0.3, 3, -3, -3, 3, 3.0);
+                encoderDrive(0.3, 1, -1, -1, 1, 3.0);          //Drive in to the button
                 sleep(200);
-                encoderDrive(0.3, -5, 5, 5, -5, 0.3);
+                encoderDrive(0.3, -4, 4, 4, -4, 0.3);          //Back away from the beacon
             }
-            encoderDrive(0.4, 42.5, 42.5, 42.5, 42.5, 3.0);
+            encoderDrive(0.4, 42.5, 42.5, 42.5, 42.5, 3.0);    //Drive to second beacon
             sleep(200);
 
         }
+        //Neither blue or red is read
         else
         {
-            encoderDrive(0, 0, 0, 0, 0, 0);
+            encoderDrive(0, 0, 0, 0, 0, 0);                    //Stopping the drivetrain
         }
 
 
-        //Second Beacon
+        //------------------------------------------------------------------------------------------
+        //Activating the second Beacon
+
+        //If the color is blue
         if(colorSensor.blue() > 2){
-            encoderDrive(0.3, -3, -3, -3, -3, 3.0);
+            encoderDrive(0.3, -3, -3, -3, -3, 3.0);            //Drive forward to align with button
             sleep(200);
-            encoderDrive(0.3, 4, -4, -4, 4, 3.0);
+            encoderDrive(0.3, 4, -4, -4, 4, 3.0);              //Drive sideways to hit the button
             sleep(200);
 
         }
+        //If the color is red
         else if(colorSensor.red() > 2)
         {
-            encoderDrive(0.3, 5, 5, 5, 5, 3.0);
+            encoderDrive(0.3, 5, 5, 5, 5, 3.0);                //Drive forward to align with beacon
             sleep(200);
+            //If the color is blue
             if(colorSensor.blue() > 2)
             {
-                encoderDrive(0.3, 4, 4, 4, 4, 3.0);
+                encoderDrive(0.3, 4, 4, 4, 4, 3.0);            //Drive forward to align with button
                 sleep(200);
-                encoderDrive(0.3, 3, -3, -3, 3, 3.0);
+                encoderDrive(0.3, 3, -3, -3, 3, 3.0);          //Push the button
                 sleep(200);
             }
 
         }
+        //If neither blue or red is sensed
         else
         {
-            encoderDrive(0, 0, 0, 0, 0, 0);
+            encoderDrive(0, 0, 0, 0, 0, 0);                    //Stop the robot
         }
 
 
 
 
-
-        /*if(colorSensor.blue() > 2){
-            encoderDrive(0.3, 44, 44, 44, 44, 3.0);
-            sleep(100);
-        }
-        else if(colorSensor.red() > 2)
-        {
-            encoderDrive(0, 0, 0, 0, 0, 0);
-            telemetry.addData("Error", "Unable to find blue light");
-        }*/
-
-
-
-        sleep(3000);
-        telemetry.addData("Path", "Complete");
+        telemetry.addData("Path", "Complete");                 //Saying that it is complete
         telemetry.update();
+        sleep(3000);
     }
 
     /*
      *  Method to perfmorm a relative move, based on encoder counts.
-     *  Encoders are not reset as the move is based on the current position.
      *  Move will stop if any of three conditions occur:
      *  1) Move gets to the desired position
      *  2) Move runs out of time
@@ -243,6 +285,9 @@ public class BlueBeacon2P2 extends LinearOpMode {
                              double leftFrontInches, double rightFrontInches,
                              double leftBackInches, double rightBackInches,
                              double timeoutS) throws InterruptedException {
+
+
+        //Keeps record of the wanted poistion of the encoder
         int newLeftFrontTarget;
         int newRightFrontTarget;
         int newLeftBackTarget;
@@ -258,12 +303,13 @@ public class BlueBeacon2P2 extends LinearOpMode {
             newLeftBackTarget =  leftBackMotor.getCurrentPosition() + (int)(leftBackInches * COUNTS_PER_INCH);
             newRightBackTarget = rightBackMotor.getCurrentPosition() + (int)(rightBackInches * COUNTS_PER_INCH);
 
+            //Set the target postion to the new target postion set above
             leftFrontMotor.setTargetPosition(newLeftFrontTarget);
             rightFrontMotor.setTargetPosition(newRightFrontTarget);
             leftBackMotor.setTargetPosition(newLeftBackTarget);
             rightBackMotor.setTargetPosition(newRightBackTarget);
 
-            // Turn On RUN_TO_POSITION
+            // Change mode to run to position
             leftFrontMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             rightFrontMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             leftBackMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -271,6 +317,9 @@ public class BlueBeacon2P2 extends LinearOpMode {
 
             // reset the timeout time and start motion.F
             runtime.reset();
+
+            //Set speed of the motors
+            //This make the motors move and the encoders count
             leftFrontMotor.setPower(Math.abs(speed));
             rightFrontMotor.setPower(Math.abs(speed));
             leftBackMotor.setPower(Math.abs(speed));
@@ -278,18 +327,23 @@ public class BlueBeacon2P2 extends LinearOpMode {
 
 
 
-            // keep looping while we are still active, and there is time left, and both motors are running.
+            // keep looping while we are still active, and there is time left, and all motors are running.
             while (opModeIsActive()/* &&
                    (runtime.seconds() < timeoutS)*/ &&
                    (leftFrontMotor.isBusy() && rightFrontMotor.isBusy() && leftBackMotor.isBusy() && rightBackMotor.isBusy())) {
 
                 // Display it for the driver.
+                // Target poistion
                 telemetry.addData("Path1",  "Running to %7d :%7d, :%7d :%7d", newLeftFrontTarget,  newRightFrontTarget, newLeftBackTarget, newRightBackTarget);
+
+                // The current poistion
                 telemetry.addData("Path2",  "Running at %7d :%7d :%7d :%7d",
                                             leftFrontMotor.getCurrentPosition(),
                                             rightFrontMotor.getCurrentPosition(),
                                             leftBackMotor.getCurrentPosition(),
+
                                             rightBackMotor.getCurrentPosition());
+                //The current speed
                 telemetry.addData("Power",  "Power at %7f :%7f %7f %7f",
                         leftFrontMotor.getPower(),
                         rightFrontMotor.getPower(),
@@ -301,13 +355,13 @@ public class BlueBeacon2P2 extends LinearOpMode {
                 idle();
             }
 
-            // Stop all motion;
+            // Stop all drivetrain motors
             leftFrontMotor.setPower(0);
             rightFrontMotor.setPower(0);
             leftBackMotor.setPower(0);
             rightBackMotor.setPower(0);
 
-            // Turn off RUN_TO_POSITION
+            // Reset mode to run
             leftFrontMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rightFrontMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             leftBackMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);

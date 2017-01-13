@@ -62,7 +62,7 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
  */
 
 @Autonomous(name="Beacon Motor Test Collector", group="Nicole")
-//@Disabled
+@Disabled
 public class BeaconTestMotor extends LinearOpMode {
 
     /* Declare OpMode members. */
@@ -71,8 +71,8 @@ public class BeaconTestMotor extends LinearOpMode {
 
 
 
-                                                               // could also use HardwarePushbotMatrix class.
-                                                               ColorSensor lineSensor;      // Primary LEGO Light sensor,
+    // could also use HardwarePushbotMatrix class.
+    ColorSensor colorSensor;      // Primary LEGO Light sensor,
     // OpticalDistanceSensor   lightSensor;   // Alternative MR ODS sensor
 
     static final double     WHITE_THRESHOLD = 0.2;  // spans between 0.1 - 0.5 from dark to light
@@ -87,9 +87,6 @@ public class BeaconTestMotor extends LinearOpMode {
         collector = hardwareMap.dcMotor.get("collector motor");
 
 
-        // get a reference to our Light Sensor object.
-        lineSensor = hardwareMap.colorSensor.get("line sensor");                // Primary LEGO Light Sensor
-
 
 
         // Send telemetry message to signify robot waiting;
@@ -99,30 +96,32 @@ public class BeaconTestMotor extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         while (!isStarted()) {
 
-            // turn on LED of light sensor.
-            lineSensor.enableLed(true);
-
             // Display the light level while we are waiting to start
-            telemetry.addData("Clear", lineSensor.alpha());
-            telemetry.addData("Red  ", lineSensor.red());
-            telemetry.addData("Green", lineSensor.green());
-            telemetry.addData("Blue ", lineSensor.blue());
-            telemetry.update();
+ //           telemetry.addData("Clear", lineSensor.alpha());
+//            telemetry.addData("Red  ", lineSensor.red());
+//            telemetry.addData("Green", lineSensor.green());
+//            telemetry.addData("Blue ", lineSensor.blue());
+//            telemetry.update();
             idle();
         }
+
+        // get a reference to our Light Sensor object.
+        colorSensor = hardwareMap.colorSensor.get("beacon color");
+
+        colorSensor.enableLed(false);
 
 
         // run until the white line is seen OR the driver presses STOP;
         while (opModeIsActive()) {
 
             // Display the light level while we are looking for the line
-            telemetry.addData("Clear", lineSensor.alpha());
-            telemetry.addData("Red  ", lineSensor.red());
-            telemetry.addData("Green", lineSensor.green());
-            telemetry.addData("Blue ", lineSensor.blue());
+//            telemetry.addData("Clear", lineSensor.alpha());
+//            telemetry.addData("Red  ", lineSensor.red());
+ //           telemetry.addData("Green", lineSensor.green());
+//            telemetry.addData("Blue ", lineSensor.blue());
             telemetry.update();
 
-            /*if(colorSensor.red() > 2){
+            if(colorSensor.red() > 2){
                 collector.setPower(1);
             }
             else if(colorSensor.blue() > 2)
@@ -132,7 +131,7 @@ public class BeaconTestMotor extends LinearOpMode {
             else
             {
                 collector.setPower(0);
-            }*/
+            }
             idle(); // Always call idle() at the bottom of your while(opModeIsActive()) loop
         }
 
