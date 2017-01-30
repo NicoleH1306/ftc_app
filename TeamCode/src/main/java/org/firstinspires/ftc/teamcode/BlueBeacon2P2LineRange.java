@@ -32,12 +32,15 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /*
   The code is written using a method called: encoderDrive(double speed,
@@ -48,9 +51,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
   This methods assumes that each movement is relative to the last stopping place.
 */
 
-@Autonomous(name="BlueBeacon2P2Line", group="Working")
+@Autonomous(name="BlueBeacon2P2LineRange", group="Working")
 //Disabled
-public class BlueBeacon2P2Line extends LinearOpMode {
+public class BlueBeacon2P2LineRange extends LinearOpMode {
 
     //private ElapsedTime runtime = new ElapsedTime();
 
@@ -62,7 +65,7 @@ public class BlueBeacon2P2Line extends LinearOpMode {
 
     //Declares the hand motor
     //This is used in Autonmous to move them out of the way
-    DcMotor hands = null;
+    DcMotor elevatorMotor = null;
 
     //Declares the color sensor
     //Used for detecting which button to hit
@@ -71,6 +74,8 @@ public class BlueBeacon2P2Line extends LinearOpMode {
     //Declares the optical distance sensor
     //Used for finding the line beneath the beacon
     OpticalDistanceSensor lineSensor;
+
+    ModernRoboticsI2cRangeSensor rangeSensor;
 
 
 
@@ -91,17 +96,18 @@ public class BlueBeacon2P2Line extends LinearOpMode {
 
 
         //Drivetrain motors
-        leftFrontMotor  = hardwareMap.dcMotor.get("left front motor");
+        leftFrontMotor = hardwareMap.dcMotor.get("left front motor");
         rightFrontMotor = hardwareMap.dcMotor.get("right front motor");
         leftBackMotor = hardwareMap.dcMotor.get("left back motor");
         rightBackMotor = hardwareMap.dcMotor.get("right back motor");
 
         //Hands motor
-        hands = hardwareMap.dcMotor.get("hands motor");
+        elevatorMotor = hardwareMap.dcMotor.get("elevator motor");
 
         //The sensors
         colorSensor = hardwareMap.colorSensor.get("beacon color");
         lineSensor = hardwareMap.opticalDistanceSensor.get("ods");
+        rangeSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, "range sensor");
 
         //Turn the led off on the colorsensor
         colorSensor.enableLed(false);
@@ -115,6 +121,8 @@ public class BlueBeacon2P2Line extends LinearOpMode {
         rightFrontMotor.setDirection(DcMotor.Direction.REVERSE);
         leftBackMotor.setDirection(DcMotor.Direction.FORWARD);
         rightBackMotor.setDirection(DcMotor.Direction.REVERSE);
+
+        elevatorMotor.setDirection(DcMotor.Direction.FORWARD);
         //private ElapsedTime     runtime = new ElapsedTime();
 
         /*
@@ -144,8 +152,8 @@ public class BlueBeacon2P2Line extends LinearOpMode {
 
 
         // Send telemetry message of the current encoder postion
-        telemetry.addData("Path0",  "Starting at %7d :%7d :%7d :%7d",
-                          rightBackMotor.getCurrentPosition(), leftBackMotor.getCurrentPosition(), leftFrontMotor.getCurrentPosition(), rightFrontMotor.getCurrentPosition());
+        telemetry.addData("Path0", "Starting at %7d :%7d :%7d :%7d",
+                rightBackMotor.getCurrentPosition(), leftBackMotor.getCurrentPosition(), leftFrontMotor.getCurrentPosition(), rightFrontMotor.getCurrentPosition());
         telemetry.update();
 
 
@@ -160,8 +168,12 @@ public class BlueBeacon2P2Line extends LinearOpMode {
         //------------------------------------------------------------------------------------------
         //Getting to the first beacon
 
+        elevatorMotor.setPower(-0.5);
+        sleep(1500);
+        elevatorMotor.setPower(0);
 
-        encoderDrive(0.4,  27,  27, 27, 27); //Drive forward 27 inches
+
+        encoderDrive(0.4, 27, 27, 27, 27); //Drive forward 27 inches
         sleep(200);
         encoderDrive(0.4, 14, -14, 14, -14); //Turn to face the beacon
         sleep(200);
@@ -174,8 +186,7 @@ public class BlueBeacon2P2Line extends LinearOpMode {
         //lining up with the beacon
 
         //Keep driving until change in the sensor value caused by the white line
-        while(baseV + 1 > lineSensor.getRawLightDetected())
-        {
+        while (baseV + 1 > lineSensor.getRawLightDetected()) {
             leftFrontMotor.setPower(0.1);
             rightFrontMotor.setPower(0.1);
             leftBackMotor.setPower(0.1);
@@ -197,27 +208,51 @@ public class BlueBeacon2P2Line extends LinearOpMode {
 
         //------------------------------------------------------------------------------------------
         //Activating the first beacon
-        encoderDrive(0.4, 3, -3, -3, 3); //Move sideways toward beacon to read color
-        sleep(200);
+
+        while(rangeSensor.getDistance(DistanceUnit.INCH) > 4)
+        {
+            leftFrontMotor.setPower(0.1);
+            rightFrontMotor.setPower(-0.1);
+            leftBackMotor.setPower(-0.1);
+            rightBackMotor.setPower(0.1);
+        }
+
+        leftFrontMotor.setPower(0);
+        rightFrontMotor.setPower(0);
+        leftBackMotor.setPower(0);
+        rightBackMotor.setPower(0);
+
+
+
 
         //Reading color first beacon
         //If color is blue
-        if(colorSensor.blue() > 2){
-            encoderDrive(0.3, -3, -3, -3, -3);            //Drive backwards 3 inches to align with button
+        if (colorSensor.blue() > 2) {
+            encoderDrive(0.3, 3, 3, 3, 3);            //Drive backwards 3 inches to align with button
             sleep(200);
-            encoderDrive(0.3, 1.5, -1.5, -1.5, 1.5);      //Push the button
-            sleep(200);
+            while(rangeSensor.getDistance(DistanceUnit.INCH) > 3)
+            {
+                leftFrontMotor.setPower(0.1);
+                rightFrontMotor.setPower(-0.1);
+                leftBackMotor.setPower(-0.1);
+                rightBackMotor.setPower(0.1);
+            }
+
+            leftFrontMotor.setPower(0);
+            rightFrontMotor.setPower(0);
+            leftBackMotor.setPower(0);
+            rightBackMotor.setPower(0);
+
             encoderDrive(0.3, -4, 4, 4, -4);              //Back away from the beacon
             sleep(200);
             encoderDrive(0.4, 54, 54, 54, 54);            //Drive to the next beacon
             sleep(200);
         }
-        //If color is red
-        else if(colorSensor.red() > 2)
-        {
+        /*//If color is red
+        else if (colorSensor.red() > 2) {
             encoderDrive(0.3, 5, 5, 5, 5);                //Drive forward to align sensor to beacon
             sleep(200);
-            if(colorSensor.blue() > 2)                         //Check to see if color is blue
+            if (colorSensor.blue() > 2)                         //Check to see if color is blue
             {
                 encoderDrive(0.3, 3, 3, 3, 3);            //Drive forward to align with button
                 sleep(200);
@@ -230,14 +265,15 @@ public class BlueBeacon2P2Line extends LinearOpMode {
 
         }
         //Neither blue or red is read
-        else
-        {
+        else {
             encoderDrive(0, 0, 0, 0, 0);                    //Stopping the drivetrain
-        }
+        }*/
+
+    }
 
 
         //------------------------------------------------------------------------------------------
-        //Activating the second Beacon
+        /*//Activating the second Beacon
 
         //If the color is blue
         if(colorSensor.blue() > 2){

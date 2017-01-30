@@ -126,7 +126,7 @@ public class Main extends LinearOpMode {
 
         int leftBState = 0;                  //Stores when the left bumper is pushed
 
-        stopper.setPosition(0.1);            //Set the beginning postion of the servo
+        stopper.setPosition(0.1);            //Set the beginning position of the servo
 
 
         //------------------------------------------------------------------------------------------
@@ -136,14 +136,14 @@ public class Main extends LinearOpMode {
 
 
             //--------------------------------------------------------------------------------------
-            //Setting up the controls. Assigns the gamepad vaules to a varible
+            //Setting up the controls. Assigns the gamepad values to a varable
 
             //Drive Train setup
             double leftX = gamepad1.left_stick_x;
             double leftY = gamepad1.left_stick_y;
             double rightX = gamepad1.right_stick_x;
 
-            //Collecotr setup
+            //Collector setup
             boolean leftB = gamepad1.left_bumper;
             double leftTr = gamepad1.left_trigger;
 
@@ -155,7 +155,7 @@ public class Main extends LinearOpMode {
             double hands = gamepad2.right_stick_y;
 
 
-            //Equation for all direction use of mechanum wheels converted to a varible
+            //Equation for all direction use of mechanum wheels converted to a variable
             double LFM = leftY - leftX - rightX;
             double RFM = leftY + leftX + rightX;
             double LBM = leftY + leftX - rightX;
@@ -178,7 +178,7 @@ public class Main extends LinearOpMode {
             //--------------------------------------------------------------------------------------
             //Code for the collector
 
-            //Collecotr toggles between on and off on the release of the bumper
+            //Collector toggles between on and off on the release of the bumper
             if(leftB)                                //If bumper is pressed
             {
                 leftBState = 1;                      //Record that button has been pressed
