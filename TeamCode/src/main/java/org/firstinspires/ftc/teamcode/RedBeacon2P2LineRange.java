@@ -37,7 +37,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -51,9 +50,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
   This methods assumes that each movement is relative to the last stopping place.
 */
 
-@Autonomous(name="BlueBeacon2P2LineRange", group="Official")
+@Autonomous(name="RedBeacon2P2LineRange", group="Working")
 //Disabled
-public class BlueBeacon2P2LineRange extends LinearOpMode {
+public class RedBeacon2P2LineRange extends LinearOpMode {
 
     //private ElapsedTime runtime = new ElapsedTime();
 
@@ -173,13 +172,13 @@ public class BlueBeacon2P2LineRange extends LinearOpMode {
         elevatorMotor.setPower(0);
 
 
-        encoderDrive(0.4, 27, 27, 27, 27); //Drive forward 27 inches
+        encoderDrive(0.4, -27, -27, -27, -27); //Drive forward 27 inches
         sleep(200);
-        encoderDrive(0.4, 14, -14, 14, -14); //Turn to face the beacon
+        encoderDrive(0.4, -14, 14, -14, 14); //Turn to face the beacon
         sleep(200);
-        encoderDrive(0.4, 49, 49, 49, 49); //Drive forward 47 inches to the beacon
+        encoderDrive(0.4, -49, -49, -49, -49); //Drive forward 47 inches to the beacon
         sleep(200);
-        encoderDrive(0.4, -14, 14, -14, 14); //Turn robot to be pararell with beacon
+        encoderDrive(0.4, 14, -14, 14, -14); //Turn robot to be pararell with beacon
         sleep(200);
 
         //------------------------------------------------------------------------------------------
@@ -204,12 +203,13 @@ public class BlueBeacon2P2LineRange extends LinearOpMode {
         rightBackMotor.setPower(0);
 
         sleep(200);
+    }
 
 
         //------------------------------------------------------------------------------------------
         //Activating the first beacon
 
-        while(rangeSensor.getDistance(DistanceUnit.INCH) > 4)
+        /*while(rangeSensor.getDistance(DistanceUnit.INCH) > 4)
         {
             leftFrontMotor.setPower(0.1);
             rightFrontMotor.setPower(-0.1);
