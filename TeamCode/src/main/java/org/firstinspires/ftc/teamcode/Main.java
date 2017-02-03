@@ -240,7 +240,7 @@ public class Main extends LinearOpMode {
                 rightBackMotor.setPower(0);
 
                 //Shooter is not set to full power because it shoots too high
-                shooter.setPower(0.8);
+                shooter.setPower(0.9);
                 //Collector power is set to one to push the ball up
                 collector.setPower(1);
 

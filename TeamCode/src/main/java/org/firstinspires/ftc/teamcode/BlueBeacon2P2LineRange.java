@@ -186,7 +186,7 @@ public class BlueBeacon2P2LineRange extends LinearOpMode {
         //lining up with the beacon
 
         //Keep driving until change in the sensor value caused by the white line
-        while (baseV + 1 > lineSensor.getRawLightDetected()) {
+        while (baseV + 1 > lineSensor.getRawLightDetected() && opModeIsActive()) {
             leftFrontMotor.setPower(0.1);
             rightFrontMotor.setPower(0.1);
             leftBackMotor.setPower(0.1);
@@ -209,7 +209,7 @@ public class BlueBeacon2P2LineRange extends LinearOpMode {
         //------------------------------------------------------------------------------------------
         //Activating the first beacon
 
-        while(rangeSensor.getDistance(DistanceUnit.INCH) > 4)
+        while(rangeSensor.getDistance(DistanceUnit.INCH) > 4 && opModeIsActive())
         {
             leftFrontMotor.setPower(0.1);
             rightFrontMotor.setPower(-0.1);
@@ -230,7 +230,7 @@ public class BlueBeacon2P2LineRange extends LinearOpMode {
         if (colorSensor.blue() > 2) {
             encoderDrive(0.3, 3, 3, 3, 3);            //Drive backwards 3 inches to align with button
             sleep(200);
-            while(rangeSensor.getDistance(DistanceUnit.INCH) > 3)
+            while(rangeSensor.getDistance(DistanceUnit.INCH) > 3 && opModeIsActive())
             {
                 leftFrontMotor.setPower(0.1);
                 rightFrontMotor.setPower(-0.1);
@@ -256,7 +256,7 @@ public class BlueBeacon2P2LineRange extends LinearOpMode {
             {
                 encoderDrive(0.3, -4, -4, -4, -4);            //Drive forward to align with button
                 sleep(200);
-                while(rangeSensor.getDistance(DistanceUnit.INCH) > 3)
+                while(rangeSensor.getDistance(DistanceUnit.INCH) > 3 && opModeIsActive())
                 {
                     leftFrontMotor.setPower(0.1);
                     rightFrontMotor.setPower(-0.1);
@@ -286,7 +286,7 @@ public class BlueBeacon2P2LineRange extends LinearOpMode {
         //Activating the second Beacon
 
         //Keep driving until change in the sensor value caused by the white line
-        while (baseV + 1 > lineSensor.getRawLightDetected()) {
+        while (baseV + 1 > lineSensor.getRawLightDetected() && opModeIsActive()) {
             leftFrontMotor.setPower(0.1);
             rightFrontMotor.setPower(0.1);
             leftBackMotor.setPower(0.1);
@@ -297,7 +297,7 @@ public class BlueBeacon2P2LineRange extends LinearOpMode {
             telemetry.update();
         }
 
-        while(rangeSensor.getDistance(DistanceUnit.INCH) > 4)
+        while(rangeSensor.getDistance(DistanceUnit.INCH) > 4 && opModeIsActive())
         {
             leftFrontMotor.setPower(0.1);
             rightFrontMotor.setPower(-0.1);
@@ -313,7 +313,7 @@ public class BlueBeacon2P2LineRange extends LinearOpMode {
         if (colorSensor.blue() > 2) {
             encoderDrive(0.3, 3, 3, 3, 3);            //Drive backwards 3 inches to align with button
             sleep(200);
-            while(rangeSensor.getDistance(DistanceUnit.INCH) > 3)
+            while(rangeSensor.getDistance(DistanceUnit.INCH) > 3 && opModeIsActive())
             {
                 leftFrontMotor.setPower(0.1);
                 rightFrontMotor.setPower(-0.1);
@@ -338,7 +338,7 @@ public class BlueBeacon2P2LineRange extends LinearOpMode {
             {
                 encoderDrive(0.3, -4, -4, -4, -4);            //Drive forward to align with button
                 sleep(200);
-                while(rangeSensor.getDistance(DistanceUnit.INCH) > 3)
+                while(rangeSensor.getDistance(DistanceUnit.INCH) > 3 && opModeIsActive())
                 {
                     leftFrontMotor.setPower(0.1);
                     rightFrontMotor.setPower(-0.1);
