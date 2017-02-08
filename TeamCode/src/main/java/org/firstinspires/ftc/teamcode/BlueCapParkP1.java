@@ -44,7 +44,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
    This methods assumes that each movement is relative to the last stopping place.
  */
 
-@Autonomous(name="BlueCapParkP1", group="Official")
+@Autonomous(name="BlueCapParkP1", group="Cap")
 //Disabled
 public class BlueCapParkP1 extends LinearOpMode {
 

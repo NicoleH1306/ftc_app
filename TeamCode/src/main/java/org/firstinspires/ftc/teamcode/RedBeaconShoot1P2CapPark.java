@@ -32,13 +32,15 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /*
   The code is written using a method called: encoderDrive(double speed,
@@ -49,9 +51,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
   This methods assumes that each movement is relative to the last stopping place.
 */
 
-@Autonomous(name="BlueBeacon2P2Line", group="Working")
-@Disabled
-public class BlueBeacon2P2Line extends LinearOpMode {
+@Autonomous(name="RedBeaconShoot1P2CapPark", group="Shoot")
+//Disabled
+public class RedBeaconShoot1P2CapPark extends LinearOpMode {
 
     //private ElapsedTime runtime = new ElapsedTime();
 
@@ -63,7 +65,12 @@ public class BlueBeacon2P2Line extends LinearOpMode {
 
     //Declares the hand motor
     //This is used in Autonmous to move them out of the way
-    DcMotor hands = null;
+    DcMotor elevatorMotor = null;
+
+    DcMotor shooter = null;
+    DcMotor collector = null;
+
+    Servo stopper;
 
     //Declares the color sensor
     //Used for detecting which button to hit
@@ -72,6 +79,8 @@ public class BlueBeacon2P2Line extends LinearOpMode {
     //Declares the optical distance sensor
     //Used for finding the line beneath the beacon
     OpticalDistanceSensor lineSensor;
+
+    ModernRoboticsI2cRangeSensor rangeSensor;
 
 
 
@@ -92,17 +101,25 @@ public class BlueBeacon2P2Line extends LinearOpMode {
 
 
         //Drivetrain motors
-        leftFrontMotor  = hardwareMap.dcMotor.get("left front motor");
+        leftFrontMotor = hardwareMap.dcMotor.get("left front motor");
         rightFrontMotor = hardwareMap.dcMotor.get("right front motor");
         leftBackMotor = hardwareMap.dcMotor.get("left back motor");
         rightBackMotor = hardwareMap.dcMotor.get("right back motor");
 
         //Hands motor
-        hands = hardwareMap.dcMotor.get("hands motor");
+        elevatorMotor = hardwareMap.dcMotor.get("elevator motor");
+
+        shooter = hardwareMap.dcMotor.get("shooter motor");
+        collector = hardwareMap.dcMotor.get("collector motor");
+
+        stopper = hardwareMap.servo.get("stopper");
 
         //The sensors
         colorSensor = hardwareMap.colorSensor.get("beacon color");
         lineSensor = hardwareMap.opticalDistanceSensor.get("ods");
+        rangeSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, "range sensor");
+
+
 
         //Turn the led off on the colorsensor
         colorSensor.enableLed(false);
@@ -116,6 +133,11 @@ public class BlueBeacon2P2Line extends LinearOpMode {
         rightFrontMotor.setDirection(DcMotor.Direction.REVERSE);
         leftBackMotor.setDirection(DcMotor.Direction.FORWARD);
         rightBackMotor.setDirection(DcMotor.Direction.REVERSE);
+
+        elevatorMotor.setDirection(DcMotor.Direction.FORWARD);
+
+        //Shooter motor
+        shooter.setDirection((DcMotor.Direction.REVERSE));
         //private ElapsedTime     runtime = new ElapsedTime();
 
         /*
@@ -143,10 +165,12 @@ public class BlueBeacon2P2Line extends LinearOpMode {
         leftBackMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightBackMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        stopper.setPosition(0.1);
+
 
         // Send telemetry message of the current encoder postion
-        telemetry.addData("Path0",  "Starting at %7d :%7d :%7d :%7d",
-                          rightBackMotor.getCurrentPosition(), leftBackMotor.getCurrentPosition(), leftFrontMotor.getCurrentPosition(), rightFrontMotor.getCurrentPosition());
+        telemetry.addData("Path0", "Starting at %7d :%7d :%7d :%7d",
+                rightBackMotor.getCurrentPosition(), leftBackMotor.getCurrentPosition(), leftFrontMotor.getCurrentPosition(), rightFrontMotor.getCurrentPosition());
         telemetry.update();
 
 
@@ -161,26 +185,29 @@ public class BlueBeacon2P2Line extends LinearOpMode {
         //------------------------------------------------------------------------------------------
         //Getting to the first beacon
 
+        elevatorMotor.setPower(-0.5);
+        sleep(1500);
+        elevatorMotor.setPower(0);
 
-        encoderDrive(0.4,  27,  27, 27, 27); //Drive forward 27 inches
+
+        encoderDrive(0.4, 27, 27, 27, 27); //Drive forward 27 inches
         sleep(200);
-        encoderDrive(0.4, 14, -14, 14, -14); //Turn to face the beacon
+        encoderDrive(0.4, -14, 14, -14, 14); //Turn to face the beacon
         sleep(200);
-        encoderDrive(0.4, 47, 47, 47, 47); //Drive forward 47 inches to the beacon
+        encoderDrive(0.4, 49, 49, 49, 49); //Drive forward 47 inches to the beacon
         sleep(200);
-        encoderDrive(0.4, -14, 14, -14, 14); //Turn robot to be pararell with beacon
+        encoderDrive(0.4, -26, 26, -26, 26); //Turn robot to be pararell with beacon
         sleep(200);
 
         //------------------------------------------------------------------------------------------
         //lining up with the beacon
 
         //Keep driving until change in the sensor value caused by the white line
-        while(baseV + 1 > lineSensor.getRawLightDetected())
-        {
-            leftFrontMotor.setPower(0.1);
-            rightFrontMotor.setPower(0.1);
-            leftBackMotor.setPower(0.1);
-            rightBackMotor.setPower(0.1);
+        while (baseV + 1 > lineSensor.getRawLightDetected() && opModeIsActive()) {
+            leftFrontMotor.setPower(-0.1);
+            rightFrontMotor.setPower(-0.1);
+            leftBackMotor.setPower(-0.1);
+            rightBackMotor.setPower(-0.1);
 
             telemetry.addData("ods", "base at %7f", baseV);
             telemetry.addData("ods", "value at %7f", lineSensor.getRawLightDetected());
@@ -198,84 +225,115 @@ public class BlueBeacon2P2Line extends LinearOpMode {
 
         //------------------------------------------------------------------------------------------
         //Activating the first beacon
-        encoderDrive(0.4, 3, -3, -3, 3); //Move sideways toward beacon to read color
-        sleep(200);
+
+        while (rangeSensor.getDistance(DistanceUnit.INCH) > 4 && opModeIsActive()) {
+            leftFrontMotor.setPower(0.1);
+            rightFrontMotor.setPower(-0.1);
+            leftBackMotor.setPower(-0.1);
+            rightBackMotor.setPower(0.1);
+        }
+
+        leftFrontMotor.setPower(0);
+        rightFrontMotor.setPower(0);
+        leftBackMotor.setPower(0);
+        rightBackMotor.setPower(0);
+
 
         //Reading color first beacon
         //If color is blue
-        if(colorSensor.blue() > 2){
-            encoderDrive(0.3, -3, -3, -3, -3);            //Drive backwards 3 inches to align with button
+        if (colorSensor.red() > 2) {
+            encoderDrive(0.3, 3, 3, 3, 3);            //Drive backwards 3 inches to align with button
             sleep(200);
-            encoderDrive(0.3, 1.5, -1.5, -1.5, 1.5);      //Push the button
+            while (rangeSensor.getDistance(DistanceUnit.INCH) > 3 && opModeIsActive()) {
+                leftFrontMotor.setPower(0.1);
+                rightFrontMotor.setPower(-0.1);
+                leftBackMotor.setPower(-0.1);
+                rightBackMotor.setPower(0.1);
+            }
+
+            leftFrontMotor.setPower(0);
+            rightFrontMotor.setPower(0);
+            leftBackMotor.setPower(0);
+            rightBackMotor.setPower(0);
+
+
+            encoderDrive(0.4, -20, 20, 20, -20);
             sleep(200);
-            encoderDrive(0.3, -4, 4, 4, -4);              //Back away from the beacon
-            sleep(200);
-            encoderDrive(0.4, 54, 54, 54, 54);            //Drive to the next beacon
-            sleep(200);
+
+            encoderDrive( 0.4, 18, -18, 18, -18);
+
         }
         //If color is red
-        else if(colorSensor.red() > 2)
-        {
-            encoderDrive(0.3, 5, 5, 5, 5);                //Drive forward to align sensor to beacon
+        else if (colorSensor.blue() > 2) {
+            encoderDrive(0.3, -4, -4, -4, -4);                //Drive forward to align sensor to beacon
             sleep(200);
-            if(colorSensor.blue() > 2)                         //Check to see if color is blue
+            if (colorSensor.red() > 2)                         //Check to see if color is blue
             {
-                encoderDrive(0.3, 3, 3, 3, 3);            //Drive forward to align with button
+                encoderDrive(0.3, -4, -4, -4, -4);            //Drive forward to align with button
                 sleep(200);
-                encoderDrive(0.3, 1, -1, -1, 1);          //Drive in to the button
+                while (rangeSensor.getDistance(DistanceUnit.INCH) > 3 && opModeIsActive()) {
+                    leftFrontMotor.setPower(0.1);
+                    rightFrontMotor.setPower(-0.1);
+                    leftBackMotor.setPower(-0.1);
+                    rightBackMotor.setPower(0.1);
+                }
+
+                leftFrontMotor.setPower(0);
+                rightFrontMotor.setPower(0);
+                leftBackMotor.setPower(0);
+                rightBackMotor.setPower(0);
+                encoderDrive(0.4, -18, 18, 18, -18);
                 sleep(200);
-                encoderDrive(0.3, -4, 4, 4, -4);          //Back away from the beacon
+                encoderDrive( 0.4, 22, -22, 22, -22);
             }
-            encoderDrive(0.4, 42.5, 42.5, 42.5, 42.5);    //Drive to second beacon
-            sleep(200);
+            else
+            {
+                encoderDrive(0.4, -18, 18, 18, -18);
+                sleep(200);
+                encoderDrive( 0.4, 22, -22, 22, -22);
+            }
 
         }
         //Neither blue or red is read
-        else
-        {
-            encoderDrive(0, 0, 0, 0, 0);                    //Stopping the drivetrain
+        else {
+            encoderDrive(0.4, -18, 18, 18, -18);
+            sleep(200);
+            encoderDrive( 0.4, 22, -22, 22, -22);                   //Stopping the drivetrain
         }
-
 
         //------------------------------------------------------------------------------------------
-        //Activating the second Beacon
-
-        //If the color is blue
-        if(colorSensor.blue() > 2){
-            encoderDrive(0.3, -3, -3, -3, -3);            //Drive forward to align with button
-            sleep(200);
-            encoderDrive(0.3, 4, -4, -4, 4);              //Drive sideways to hit the button
-            sleep(200);
-
-        }
-        //If the color is red
-        else if(colorSensor.red() > 2)
-        {
-            encoderDrive(0.3, 5, 5, 5, 5);                //Drive forward to align with beacon
-            sleep(200);
-            //If the color is blue
-            if(colorSensor.blue() > 2)
-            {
-                encoderDrive(0.3, 4, 4, 4, 4);            //Drive forward to align with button
-                sleep(200);
-                encoderDrive(0.3, 3, -3, -3, 3);          //Push the button
-                sleep(200);
-            }
-
-        }
-        //If neither blue or red is sensed
-        else
-        {
-            encoderDrive(0, 0, 0, 0, 0);                    //Stop the robot
-        }
+        //Lining up to shoot
 
 
 
 
-        telemetry.addData("Path", "Complete");                 //Saying that it is complete
-        telemetry.update();
-        sleep(3000);
+
+        shooter.setPower(0.9);
+        collector.setPower(1.0);
+        sleep(1000);
+
+        stopper.setPosition(0.7);
+        sleep(2000);
+        collector.setPower(0);
+        stopper.setPosition(0.1);
+        shooter.setPower(0.0);
+
+        //------------------------------------------------------------------------------------------
+        //Knocking the cap ball off and parking
+
+        encoderDrive(0.4, 39, -39, 39, -39);
+        sleep(200);
+
+        encoderDrive(0.4, 35, 35, 35, 35);
+        sleep(200);
+
+
+
     }
+
+
+
+
 
     /*
      *  Method to perfmorm a relative move, based on encoder counts.

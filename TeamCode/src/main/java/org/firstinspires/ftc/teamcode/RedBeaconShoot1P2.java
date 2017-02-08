@@ -51,7 +51,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
   This methods assumes that each movement is relative to the last stopping place.
 */
 
-@Autonomous(name="RedBeaconShoot1P2", group="Work")
+@Autonomous(name="RedBeaconShoot1P2", group="Shoot")
 //Disabled
 public class RedBeaconShoot1P2 extends LinearOpMode {
 

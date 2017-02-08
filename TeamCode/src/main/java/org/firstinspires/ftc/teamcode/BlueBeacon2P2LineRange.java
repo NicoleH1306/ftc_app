@@ -51,7 +51,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
   This methods assumes that each movement is relative to the last stopping place.
 */
 
-@Autonomous(name="BlueBeacon2P2LineRange", group="Official")
+@Autonomous(name="BlueBeacon2P2LineRange", group="Beacon")
 //Disabled
 public class BlueBeacon2P2LineRange extends LinearOpMode {
 

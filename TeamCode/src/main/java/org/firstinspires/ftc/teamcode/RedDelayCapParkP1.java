@@ -64,7 +64,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="RedDelayCapParkP1", group="Official")
+@Autonomous(name="RedDelayCapParkP1", group="Cap")
 //Disabled
 public class RedDelayCapParkP1 extends LinearOpMode {
 
